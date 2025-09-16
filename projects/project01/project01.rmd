@@ -1,0 +1,120 @@
+---
+title: "Project 01"
+author: "Tiange Feng"
+date: "2025-09-10"
+output: 
+  github_document:
+    toc: true
+    toc_depth: 2
+    html_preview: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('reticulate')
+use_python('/usr/bin/python3')
+```
+
+
+# Set work directory
+
+```{python}
+
+import os
+os.chdir("/courses/BINF6250.202610/students/feng.tiang/project_01")
+
+```
+
+
+# Function read_file
+
+```{python}
+
+# Param: This take a string "file_path" as an argument. It's the file path of the original vcf file
+# Return: a dictionary
+
+def read_file(file_path):
+  dict_disease = {}
+  with open(file_path, 'r') as vcf_file:
+    for line in vcf_file:
+      disease_counter(parse_line(line), dict_disease)
+  return dict_disease
+
+```
+
+
+# Function parse_line
+
+```{python}
+
+# Param: a string from a line passed by function read_file
+# Return: a list of relevant disease names
+
+def parse_line(line):
+  
+  info_dict = {}
+  
+  if line.startswith("#"):
+    return []
+  
+  else:
+    cols = line.split('\t')
+    info = cols[7]
+    
+    info_list = info.split(';')
+    
+    for entries in info_list:
+      entry_key_values = entries.split('=')
+      info_dict[entry_key_values[0]] = entry_key_values[1]
+
+
+    if "AF_EXAC" not in dict.keys(info_dict):
+      return []
+
+    else:
+      if float(info_dict["AF_EXAC"]) >= 0.0001:
+        return []
+      else:
+        list_CLNDN = info_dict["CLNDN"].split("|")
+        return list_CLNDN
+
+```
+
+
+# Function disease_counter
+
+```{python}
+
+# Param: a list given by function parse_line
+# Return: the updated dictionary dict_disease of underscored diseases and counts
+
+def disease_counter(list_CLNDN, dict_disease):
+  
+  key_dict_disease = list(dict.keys(dict_disease))
+  
+  no_count = ["not_specified", "not_provided"]
+  
+  if list_CLNDN:
+    
+    for diseases in list_CLNDN:
+      if diseases in key_dict_disease and diseases not in no_count:
+        dict_disease[diseases] += 1
+        
+      elif diseases not in key_dict_disease and diseases not in no_count:
+        dict_disease[diseases] = 1
+
+  return dict_disease
+
+```
+
+
+# Run the program
+
+```{python}
+
+import pprint
+
+if __name__ == "__main__":
+  pprint.pprint(read_file("clinvar_20190923_short.vcf"))
+```
+
