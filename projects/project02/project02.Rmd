@@ -26,7 +26,7 @@ In class today we will be implementing a Markov chain to process sentences
 ## Learning Objectives
 
 1. Students will be able to explain the Markov Chain process  
-1. Implement a Markov Chain
+2. Implement a Markov Chain
 
 ---
 
@@ -43,6 +43,21 @@ Our goal today will be to implement a Markov model built from words. For our exa
 ## Train Markov model
 
 For our initial implementation of the Markov Model, we will use the simple example of Dr. Seuss: "One fish two fish red fish blue fish."
+
+### Note
+create a`list` of unique occurrence of each word in the `string`
+create an empty `dict`
+find location of  each occurrence of a word from the `list` in the original `string`
+identify the word after it
+add the word as a key to the `dict` if it doesn't exist and set its value to `1`
+otherwise, increase its value by `1`
+
+
+Identify the first and last word of the `string`
+add `'*S*'` as a key to the `dict` and the first word of the `string` as a transition occurrence.
+add `'*E*'` as a transition occurrence from the last word of the `string`
+
+
 
 ```{python}
 def build_markov_model(markov_model, new_text):
@@ -86,6 +101,10 @@ Expected output:
 
 In the above model, each event or word is output from only the previous state with no memory of any prior states. While this is useful in some cases, typical biological applications of Markov chains require higher-order models to accurately capture what we know about a system. For instance, in attempting to identify coding regions of a genome, we know that open reading frames (ORFs) contain codon triplets, and so a third or sixth order Markov chain would better describe these regions. Here you will implement a generalized form of our previous Markov Chain to allow for Nth order chains.
 
+### Notes
+Use recursion, see Fibonacci
+order is number of recursion, and the core `else` statement is our original model
+
 ```{python}
 def build_markov_model(markov_model, text, order=1):
     '''
@@ -113,6 +132,14 @@ markov_model
 Markov models are "generative models". That is, the probability states in the model can be used to generate output following the conditional probabilities in the model.
 
 We will now generate a sequence of text from the Markov model. For this section, I recommend using np.random.choice, which allows for you to provide a probability distribution for drawing the next edge in the chain.
+
+### Notes
+
+use `current_word` to search our outer key of our dict
+calculate the probability of each of the possible following words
+use a random number generator to choose the next word
+continue until we hit an `*E*`
+
 
 ```{python}
 import numpy as np
@@ -195,5 +222,3 @@ for line in file:
         sonet = sonet + ' ' + line
  
 print (generate_random_text(sonet_markov_model,seed=7))
-```
-
