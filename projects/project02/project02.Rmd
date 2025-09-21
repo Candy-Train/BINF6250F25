@@ -190,9 +190,24 @@ def get_next_word(current_word, markov_model, seed=42):
     Randomly draw from these to generate the next state
     
     '''
-    pass
+    inner_dict = markov_model[current_word]
+    total_frequency = sum(inner_dict.values())
+    
+    for key in inner_dict:
+        inner_dict[key] = inner_dict[key]/total_frequency
+    
+    words = list(inner_dict.keys())
+    probabilities = list(inner_dict.values())
+    
+    next_word = np.random.choice(words, p=probabilities)
+    
+    return next_word
+
+#print(get_next_word("fish", markov_model))
+```
 
 
+```{python}
 def generate_random_text(markov_model, seed=42):
     '''
     Function to generate text given a markov model
@@ -210,7 +225,17 @@ def generate_random_text(markov_model, seed=42):
     Return sentence
     
     '''
-    pass
+    sentence = get_next_word("*S*", markov_model)
+    current_word = sentence
+    
+    while current_word != "*E*":
+        current_word = get_next_word(current_word, markov_model)
+        sentence += (" " + current_word)
+    
+    sentence = sentence.rstrip("*E*")    
+    return sentence
+
+print(generate_random_text(markov_model))
 ```
 
 ------------------------------------------------------------------------
