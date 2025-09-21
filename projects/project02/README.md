@@ -36,16 +36,56 @@ FUNCTION build_markov_model(markov_model = dict, new_text = str):
     SET the unique words as the key for markov_model and use the inner_dict as the values
     
   RETURN markov_model
-    
+  
 INITIATE markov_model dictionary
-CALL on function and store in markov_model
-PRINT results
+text <- string 
+CALL on build_markov_model using markov_model and text and UPDATE results in markov_model
+PRINT markov_model
+
+    
 ```
 
 ### Nth order Markov Chain
 ```
+FUNCTION build_markov_model(markov_model = dict, text = str, order = int w/ default of 1)
+  
+  RETURN markov_model
 
+INITIATE markov_model dictionary
+text <- string 
+CALL on build_markov_model using markov_model, text, and nth order and UPDATE results in markov_model
+PRINT markov_model
 ```
+
+### Generate text from Markov Model
+```
+USE numpy
+
+FUNCTION get_next_word(current_word = tuple, markov_model = dict of dict, seed)
+  SEARCH outer key of markov_model 
+  CALCULATE probability of each word 
+  SELECT next_word using random number generator 
+
+  
+  RETURN next_word
+  
+
+FUNCTION generate_random_text(markov_model = dict of dict, seed)
+  sentence <- string
+  SEARCH outer key for '*S*' in markov_model
+  CALCULATE probability of each value in '*S*'
+  SELECT start_state using random number generator
+  
+  SET current_word to start_state
+  WHILE current_word != '*E*'
+    current_word <- CALL on get_next_word using current_word and markov_model 
+    APPEND current_word to sentence
+    
+  
+  RETURN sentence
+```
+### All the Fish
+
 
 # Successes
 
