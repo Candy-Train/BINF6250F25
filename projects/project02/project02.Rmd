@@ -151,14 +151,35 @@ def build_markov_model(markov_model, text, order=1):
     Returns:
     markov_model (dict of dicts): an updated/new markov_model
     '''
-    pass
+    if type(text) == str:
+        text = "*S* "+text+" *E*"
+        text = text.split()
+
+    for i in range(order, len(text)):
+        current_combo = tuple(text[i-order:i])
+        next_text = text[i]
+            
+        if current_combo not in markov_model:
+            markov_model[current_combo] = {}
+        else:
+            if next_text in markov_model[current_combo]:
+                markov_model[current_combo][next_text] += 1
+            else:
+                markov_model[current_combo][next_text] = 1
+
+    if order == 1:
+        return markov_model
+    else:
+        order = order-1
+        build_markov_model(markov_model, text, order)
+        return markov_model
 
 markov_model = dict()
 text = "one fish two fish red fish blue red fish blue"
-markov_model = build_markov_model(markov_model, text, order=2)
-markov_model
+markov_model = build_markov_model(markov_model, text, 2)
+# build_markov_model(markov_model, text, 2)
+print(markov_model)
 ```
-
 ## Generate text from Markov Model
 
 Markov models are "generative models". That is, the probability states in the model can be used to generate output following the conditional probabilities in the model.
