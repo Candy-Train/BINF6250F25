@@ -1,6 +1,6 @@
 ---
 title: "Project 02"
-author: "USER NAME"
+author: "Zoe Chow", "Chris Fitzgerald", "Little Butler"
 date: "`r Sys.Date()`"
 output:
     github_document:
@@ -151,13 +151,13 @@ def build_markov_model(markov_model, text, order=1):
     Returns:
     markov_model (dict of dicts): an updated/new markov_model
     '''
-    if type(text) == str:
-        text = "*S* "+text+" *E*"
-        text = text.split()
+    #if type(text) == str:
+    text = text+ " *E*" 
+    text = text.split()   #if txt is string add 's' and 'E' then split txt to retain order
 
-    for i in range(order, len(text)):
-        current_combo = tuple(text[i-order:i])
-        next_text = text[i]
+    for i in range(len(text) - order):
+        current_combo = tuple(text[i:i+order])
+        next_text = text[i+order]  
             
         if current_combo not in markov_model:
             markov_model[current_combo] = {}
@@ -166,7 +166,8 @@ def build_markov_model(markov_model, text, order=1):
             markov_model[current_combo][next_text] += 1
         else:
             markov_model[current_combo][next_text] = 1
-
+        #if i+order == len(text):
+            #markov[current_combo][*E*] = 1
     if order == 1:
         return markov_model
     else:
