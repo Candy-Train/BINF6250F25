@@ -161,11 +161,11 @@ def build_markov_model(markov_model, text, order=1):
             
         if current_combo not in markov_model:
             markov_model[current_combo] = {}
+        
+        if next_text in markov_model[current_combo]:
+            markov_model[current_combo][next_text] += 1
         else:
-            if next_text in markov_model[current_combo]:
-                markov_model[current_combo][next_text] += 1
-            else:
-                markov_model[current_combo][next_text] = 1
+            markov_model[current_combo][next_text] = 1
 
     if order == 1:
         return markov_model
