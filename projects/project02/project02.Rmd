@@ -155,6 +155,11 @@ def build_markov_model(markov_model, text, order=1):
     text = text+ " *E*" 
     text = text.split()   #if txt is string add 's' and 'E' then split txt to retain order
 
+    start = tuple(text[:order])
+    start_dict = {}
+    start_dict[start] = 1
+    markov_model['*S*'] = start_dict
+
     for i in range(len(text) - order):
         current_combo = tuple(text[i:i+order])
         next_text = text[i+order]  
@@ -247,8 +252,9 @@ def generate_random_text(markov_model, seed=42):
     Return sentence
     
     '''
-    sentence = get_next_word("*S*", markov_model)
-    current_word = sentence
+    start_state = get_next_word("*S*", markov_model)
+    next_tuple = start_state [-1]
+    sentence = " ".join(current_word)
     
     while current_word != "*E*":
         current_word = get_next_word(current_word, markov_model)
@@ -271,7 +277,13 @@ Up till now, you have only been working with a line or two of the Dr. Seuss' *On
 
 markov_model = dict()
 # Read in the whole book
-pass
+with open("/courses/BINF6250.202610/students/fitzgerald.chr/Projects/BINF6250F25/projects/project02/one_fish_two_fish.txt", 'r') as txt_file:
+
+markov_model = {}
+
+for line in txt_file:
+    build_markov_model(markov_model, line, 1)
+    return markov_model
 
 print (generate_random_text(markov_model,seed=7))
 ```
