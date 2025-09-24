@@ -230,7 +230,7 @@ def get_next_word(current_word, markov_model, seed=42):
     
     return next_word
 
-#print(get_next_word("fish", markov_model))
+#print(get_next_word(('fish', 'blue'), markov_model))
 ```
 
 
@@ -252,13 +252,27 @@ def generate_random_text(markov_model, seed=42):
     Return sentence
     
     '''
-    start_state = get_next_word("*S*", markov_model)
-    next_tuple = start_state [-1]
-    sentence = " ".join(current_word)
+    start_state = get_next_word("*S*", markov_model)  # gets first few words
     
-    while current_word != "*E*":
-        current_word = get_next_word(current_word, markov_model)
-        sentence += (" " + current_word)
+    # nth order markov_chain
+    if type(start_state) is tuple:
+        sentence = " ".join(start_state)  # convert tuple to strings for sentence
+        order = len(start_state)  # determine nth order of markov_chain
+        prev_tuple = start_state[1:order]  # save all but the first word in tuple
+        current_word = get_next_word(start_state, markov_model)  # get word after start state
+        while current_word != "*E*":  # stop loop if we reach end state
+            # determine tuple to enter into get_next_word (all but the first word + new word) - should update as it loops
+            next_tuple = prev_tuple + (current_word,)
+            current_word = get_next_word(next_tuple, markov_model)  # update current_word
+            prev_tuple = next_tuple[1:order]  # update prev_tuple
+            sentence += (" " + current_word)
+        
+    else:  # 1st order markov_chain
+        sentence = start_state
+        while current_word != "*E*":
+            current_word = get_next_word(current_word, markov_model)
+            sentence += (" " + current_word)
+    
     
     sentence = sentence.rstrip("*E*")    
     return sentence
@@ -294,6 +308,17 @@ print (generate_random_text(markov_model,seed=7))
 
 Now, let's play around with some Shakespeare.
 
-\`\`\`{python} \# An example of a more complex text that we can use to generate more complex output sonet_markov_model = dict() file = open("data/sonnets.txt", "r") sonet = "" for line in file: line = line.strip() if line == "": \# Empty line so build model sonet_markov_model = build_markov_model(sonet_markov_model, sonet, order=2) sonet = "" else: sonet = sonet + ' ' + line
+```{python} 
+# An example of a more complex text that we can use to generate more complex output 
+sonet_markov_model = dict() 
+file = open("data/sonnets.txt", "r") 
+sonet = "" 
+for line in file: 
+    line = line.strip() 
+    if line == "":  # Empty line so build model 
+        sonet_markov_model = build_markov_model(sonet_markov_model, sonet, order=2) 
+        sonet = "" 
+    else: 
+        sonet = sonet + ' ' + line
 
 print (generate_random_text(sonet_markov_model,seed=7))
