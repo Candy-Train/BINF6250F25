@@ -48,9 +48,32 @@ PRINT markov_model
 ### Nth order Markov Chain
 ```
 FUNCTION build_markov_model(markov_model = dict, text = str, order = int w/ default of 1)
+  ADD end state to text
+  SPLIT text to create list
 
-  
-  RETURN markov_model
+  GET the first few words based on order to get start state
+  INITIATE inner dictionary for start state
+  SET inner dictionary for start state as 1
+  ADD start state dictionary to the start state key of the markov_model
+
+  FOR each position for the text to text-order(the last position of the combo)
+    current_combo <- tuple of the text
+    next_text <- word after the combo
+
+    IF the combo is not in the markov_model
+      CREATE key for markov_model where the combo is the key
+
+    IF next_text is a value in the combo of the markov_model
+      UPDATE inner key by 1
+    ELSE
+      CREATE new key for the combo of the markov_model and set as 1
+
+  IF the order is 1
+    RETURN markov_model
+  ELSE
+    SET the order to order-1
+    CALL on this function
+    RETURN markov_model
 
 INITIATE markov_model dictionary
 text <- string 
@@ -128,11 +151,12 @@ CALL and print the results from generate_random_text using sonet_markov_model
 
 # Struggles
 
-For the first order `build_markov_model()` function, we struggled with getting all next_words. Our loop initially looped through the text by comparing the targeted word and the word in the text. If the words are the same, the code would find index of the word using `find()` and get the next word. However, this method caused our program to get stuck on the first `fish` found and improperly iterate through the text to find all next words. We later used `enumerate()` to find all indices before looping based on the positions instead. 
+* First order `build_markov_model()` function - we struggled with getting all next_words. Our loop initially looped through the text by comparing the targeted word and the word in the text. If the words are the same, the code would find index of the word using `find()` and get the next word. However, this method caused our program to get stuck on the first `fish` found and improperly iterate through the text to find all next words. We later used `enumerate()` to find all indices before looping based on the positions instead. 
 
-For the nth order markov chain, we struggled to correctly implement recursion so that it would correctly build the markov model. 
+* Nth order markov chain - we struggled to correctly implement recursion so that it would correctly build the markov model. 
 
-For `generate_next_word()` function, we needed to learn how to use and implement the `np.random.choice()` function. 
+* `generate_next_word()` function - we needed to learn how to use and implement the `np.random.choice()` function.
+* `generate_new_text()` function - we struggled to update our function to account for the Nth order markov chain.
 
 
 
