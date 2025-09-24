@@ -151,17 +151,19 @@ def build_markov_model(markov_model, text, order=1):
     Returns:
     markov_model (dict of dicts): an updated/new markov_model
     '''
-    #if type(text) == str:
+    #if type(text) == str:  #removed bc recursion did not loop correctly
     text = text+ " *E*" 
-    text = text.split()   #if txt is string add 's' and 'E' then split txt to retain order
+    text = text.split()   
 
+    # add start state to markov_model dictionary
     start = tuple(text[:order])
     start_dict = {}
     start_dict[start] = 1
     markov_model['*S*'] = start_dict
 
+    # iterate through each position of the text, but stop after the last possible combo
     for i in range(len(text) - order):
-        current_combo = tuple(text[i:i+order])
+        current_combo = tuple(text[i:i+order])  
         next_text = text[i+order]  
             
         if current_combo not in markov_model:
@@ -171,8 +173,7 @@ def build_markov_model(markov_model, text, order=1):
             markov_model[current_combo][next_text] += 1
         else:
             markov_model[current_combo][next_text] = 1
-        #if i+order == len(text):
-            #markov[current_combo][*E*] = 1
+        
     if order == 1:
         return markov_model
     else:
@@ -293,11 +294,9 @@ markov_model = dict()
 # Read in the whole book
 with open("/courses/BINF6250.202610/students/fitzgerald.chr/Projects/BINF6250F25/projects/project02/one_fish_two_fish.txt", 'r') as txt_file:
 
-markov_model = {}
-
-for line in txt_file:
-    build_markov_model(markov_model, line, 1)
-    return markov_model
+    for line in txt_file:
+        build_markov_model(markov_model, line, 1)
+        return markov_model
 
 print (generate_random_text(markov_model,seed=7))
 ```
@@ -311,7 +310,7 @@ Now, let's play around with some Shakespeare.
 ```{python} 
 # An example of a more complex text that we can use to generate more complex output 
 sonet_markov_model = dict() 
-file = open("data/sonnets.txt", "r") 
+file = open("/courses/BINF6250.202610/students/fitzgerald.chr/Projects/BINF6250F25/projects/project02/sonnets.txt", "r") 
 sonet = "" 
 for line in file: 
     line = line.strip() 
