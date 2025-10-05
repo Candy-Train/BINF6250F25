@@ -15,35 +15,6 @@ library('reticulate')
 reticulate::use_condaenv(condaenv = "r-reticulate")
 ```
 
-You will be implementing one of the primary assembly algorithms from short-read data that is used today. We will implement a simple form of the algorithm where we *assume perfect sequencing*. That is, everything is sequenced exactly once and there are no errors or variants in the sequencing.
-
-A graph is composed of **nodes** and **edges** and we will need to develop a data structure to track edges between nodes in our graph. We have provided the basic class structure as well as descriptions of functions to `add_edge` and `remove_edge` from the graph. You will need to implement these functions in order to then build the de Bruijn graph.
-
-In our implementation below, we use a `defaultdict` data structure to hold a list of all edges in the graph where all "right" nodes connected to a "left" node are stored in a list for that node.
-
-```         
-build_debruijn_graph:
-define substring length k and input string
-For each k-length substring of input:
-  split k mer into left and right k-1 mer
-  add k-1 mers as nodes with a directed edge from left k-1 mer to right k-1 mer
-```
-
-------------------------------------------------------------------------
-
-## Eulerian walk
-
-To continue our implementation from last class, we will use our De Bruijn graph to output a valid sequence from the assembly. This is implemented as a recursive algorithm by considering all valid edges. You will notice that as you change $k$, we are able to better recapitulate our sequence depending on how repetitive it is. In a more complex implementation of a Eulerian walk there are heuristics and defined rules for determining the validity of traversing a specific edge in the graph to result in a full graph-traversal. One of these methods is to traverse the graph in a depth first manner to avoid sectioning off any part of the graph in the traversal. In our implementation we will ignore these for simplicity.
-
-```         
-eulerian_walk:
-Beginning at first_node as node
-
-For node:
-    follow a random valid edge from node
-    remove edge
-    recurse
-```
 
 ```{python}
 from collections import defaultdict
@@ -59,11 +30,12 @@ class DeBruijnGraph():
 
     def __init__(self, input_string, k):
         self.graph = defaultdict(list)
-        self.first_node = ''
+        self.first_node = input_string[:k - 1]
         self.build_debruijn_graph(input_string, k)
         
     def add_edge(self, left, right):
-        ''' This function adds a new edge to the graph
+        ''' 
+        This function adds a new edge to the graph
         
         Args:
             left (str): The k-1 mer for the left edge
@@ -71,10 +43,11 @@ class DeBruijnGraph():
 
         Updates graph attribute to add right to the list named left in defaultdict   
         '''
-        pass
+        self.graph[left].append(right)
         
     def remove_edge(self, left, right):
-        ''' This function removes an edge from the graph
+        ''' 
+        This function removes an edge from the graph
         
         Args:
             left (str): The k-1 mer for the left edge
@@ -82,49 +55,24 @@ class DeBruijnGraph():
 
         Updates graph attribute to remove right from the list named left in defaultdict
         '''
-        pass
+        self.graph[left].remove(right)
 
     def build_debruijn_graph(self, input_string, k):
-        ''' This function builds a De Buijn graph from a string
+        #This function builds a De Buijn graph from a string
         
+        #input_string = "fool me once shame on shame on you fool me"
+        #k = 6
         
-1. **Graph Construction**: Create nodes for all (k-1)-mers from the set of k-mers in the sequencing reads.
+        for i in range(0, len(input_string) - (k - 1)):
+            kmer = input_string[i:(i + (k))]
+            k_left = kmer[:k - 1]
+            k_right = kmer[1:]
+            
+            comp_left = k_left[1:]
+            comp_right = k_right[:len(k_right) - 1]
 
-  Cut out each k-1mer
-  store it as a key in the defaultdict if it doesnt exist
-  
-  stop when we get to length of the string - k mer 
-
-
-
-        
-2. **Edge Creation**: Draw edges between nodes if their corresponding k-mers overlap by k-1 bases.
-
-  Cut out each k mer
-  check if k mer - first character is a key
-  check if k mer - last character is a key
-  
-  use 'add_edge' to add a new edge to the graph with (k mer - first character) as the left (which is the key in our dict) and (k mer - last character) as the right (which is a value)
-
-
-  
-
-
-3. **Path Finding**: Find an Eulerian path through the graph, which represents a possible reconstruction of the original sequence.
-4. **Sequence Reconstruction**: Follow the path to reconstruct the original genome sequence.
-        
-        Args:
-            input_string (str): string to use for building the graph
-            k (int): k-mer length for graph construction
-
-        Updates graph attribute to add all valid edges from the string
-        
-        Example:
-        >>> dbg = DeBruijnGraph("this this this is a test", 4)
-        >>> print(dbg.graph) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-        defaultdict(<class 'list'>, {'thi': ['his', 'his', 'his'], 'his': ['is ', 'is ', 'is '], ...)
-        '''
-        pass
+            if comp_left == comp_right:
+                self.add_edge(k_left, k_right)
 
     def print_eulerian_walk(self, seed=None):
         ''' This function starts the recursive walk function
@@ -140,7 +88,9 @@ class DeBruijnGraph():
         >>> dbg.print_eulerian_walk(seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         ['thi', ...]
         '''
-        pass
+        tour = []
+        self.eulerian_walk(self.first_node)
+        return tour
         
     def eulerian_walk(self, node, seed=None):
         ''' This is a recursive function that follows all edges from a node
@@ -159,18 +109,27 @@ class DeBruijnGraph():
         >>> dbg.eulerian_walk('thi', seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         ['est', ...]
         '''
-        self.first_node(input_string[:k-1])
         
-        pass
+        tour = [self.first_node]
+        
+        if self.graph is True
+            next_node = self.graph[node]([0])
+            self.remove_edge(node, next_node)
+            node = next_node
+            tour.append(node)
+        
+            eulerian_walk(node)
+            print(tour)
+        return tour
     
 ```
 
 ```{python}
-# | eval: false
+
 graph = DeBruijnGraph("fool me once shame on shame on you fool me", 6)
 print(graph.graph)
 walk = graph.print_eulerian_walk(seed=4)
-walk[0] + "".join(map(lambda x: x[-1], walk[1:]))
+#walk[0] + "".join(map(lambda x: x[-1], walk[1:]))
 ```
 
 Expected output:
