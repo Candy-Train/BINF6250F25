@@ -32,6 +32,7 @@ class DeBruijnGraph():
         self.graph = defaultdict(list)
         self.first_node = input_string[:k - 1]
         self.build_debruijn_graph(input_string, k)
+        self.tour = [self.first_node]
         
     def add_edge(self, left, right):
         ''' 
@@ -88,9 +89,10 @@ class DeBruijnGraph():
         >>> dbg.print_eulerian_walk(seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         ['thi', ...]
         '''
-        tour = []
+        
         self.eulerian_walk(self.first_node)
-        return tour
+        return self.tour
+        
         
     def eulerian_walk(self, node, seed=None):
         ''' This is a recursive function that follows all edges from a node
@@ -109,18 +111,16 @@ class DeBruijnGraph():
         >>> dbg.eulerian_walk('thi', seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         ['est', ...]
         '''
-        
-        tour = [self.first_node]
-        
-        if self.graph is True
-            next_node = self.graph[node]([0])
+        possible_steps = self.graph[node]
+            
+        if possible_steps:
+            next_node = possible_steps[0]
             self.remove_edge(node, next_node)
             node = next_node
-            tour.append(node)
-        
-            eulerian_walk(node)
-            print(tour)
-        return tour
+            self.tour.append(node)
+            self.eulerian_walk(node)
+            
+        return self.tour
     
 ```
 
@@ -129,7 +129,7 @@ class DeBruijnGraph():
 graph = DeBruijnGraph("fool me once shame on shame on you fool me", 6)
 print(graph.graph)
 walk = graph.print_eulerian_walk(seed=4)
-#walk[0] + "".join(map(lambda x: x[-1], walk[1:]))
+walk[0] + "".join(map(lambda x: x[-1], walk[1:]))
 ```
 
 Expected output:
