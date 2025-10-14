@@ -20,57 +20,15 @@ library('reticulate')
 import numpy as np
 ```
 
----
-
-## Implement Smith-Waterman algorithm
-
-```
-SmithWaterman(seq1, seq2, match, mismatch, gap)
-    Initialize [len(seq1)+1] x [len(seq2)+1] numpy array as scoring matrix with first column and row equal to 0
-    
-    Fill scoring matrix (score_matrix) and Traceback matrix, record the position with max score (max_pos):
-    for i in each row number:
-        for j in each column number:
-            S[i][j] = max( S[i-1][j-1] + compute_diag_score, S[i-1][j] + gap_score, H[i][j-1] + gap_score, 0 )
-            T[i][j] = direction of max( S[i-1][j-1] + compute_diag_score, S[i-1][j] + gap_score, S[i][j-1] + gap_score, 0 )
-    
-    Traceback. Find the optimal path through scoring matrix starting at max_pos
-    
-```
-
-
-
 
 ```{python}
 def cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap):
-    '''Calculate score for position (i,j) in scoring matrix, also record move to trace back
-    
-    Args:
-        matrix (numpy array): scoring matrix
-        seq1 (str): sequence 1
-        seq2 (str): sequence 2
-        i (int): current row number
-        j (int): current column number
-        
-    Returns:
-        score in position (i,j)    
-        move to trace back: 0-END, 1-DIAG, 2-UP, 3-LEFT
-        
-    Pseudocode:
-        Calculate scores based on upper-left, up, and left neighbors:
-            diag_score = upper-left + (match or mismatch)
-            up_score = up + gap
-            left_score = left + gap
-        score = max(0, diag_score, up_score, left_score)
-        traceback = maximum direction or end
-        
-    '''
     if seq1[i - 1] == seq2[j - 1]:
         diag_score = score_matrix[i - 1, j - 1] + match
     else:
         diag_score = score_matrix[i - 1, j - 1] + mismatch
-    up_score = score_matrix[i, j - 1] + gap
-    left_score = score_matrix[i - 1, j] + gap
+    up_score = score_matrix[i - 1, j] + gap
+    left_score = score_matrix[i, j - 1] + gap
     
     score = max(0, diag_score, up_score, left_score)
     
@@ -90,111 +48,71 @@ def cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap):
 
 ```{python}
 def traceback(seq1, seq2, traceback_matrix, maximum_position):
-    '''Find the optimal path through scoring marix
+    aligned_seq1 = ''
+    aligned_seq2 = ''
+    i, j = maximum_position
+    move = traceback_matrix[i][j]
+    while move != 0:
+        if move == 1:
+            aligned_seq1 += seq1[i - 1]
+            aligned_seq2 += seq2[j - 1]
+            i -= 1
+            j -= 1
+        elif move == 2:
+            aligned_seq1 += seq1[i - 1]
+            aligned_seq2 += '-'
+            i -= 1
+        elif move == 3:
+            aligned_seq1 += '-'
+            aligned_seq2 += seq2[j - 1]
+            j -= 1
+        move = traceback_matrix[i][j]
         
-        diagonal: match/mismatch
-        up: gap in seq1
-        left: gap in seq2
-        
-    Args:
-        seq1 (str) : First sequence being aligned
-        seq2 (str) : Second sequence being aligned
-        traceback_matrix (numpy array): traceback matrix
-        maximum_position (tuple): starting position to trace back from
-        
-    Returns:
-        aligned_seq1 (str): e.g. GTTGAC
-        aligned_seq2 (str): e.g. GTT-AC
-        
-    Pseudocode:
-        while current_move != END:
-            current_move = traceback_matrix[current_row][current_col]
-            if current_move == DIAG:
-                ...
-            elif current_move == UP:
-                ...
-            elif current_move == LEFT:
-                ...
-            
-    '''
-    reversed_aligned_seq1 = seq1[-1]
-    reversed_aligned_seq2 = seq2[-1]
-    
-    seq1_location = -1
-    seq2_location = -1
-
-    current_move = traceback_matrix[maximum_position[0]][maximum_position[1]]
-    current_row = maximum_position[0]
-    current_col = maximum_position[1]
-    
-    while current_move != 0:
-        if current_move == 1
-            current_move = traceback_matrix[current_row - 1][current_col - 1]
-            seq1_location -= 1
-            seq2_location -= 1
-            reverse_aligned_seq1 += seq1[seq1_location]
-            reverse_aligned_seq2 += seq2[seq2_location]
-            
-        elif current move == 2
-            current_move = traceback_matrix[current_row][current_col - 1]
-            seq1_location -= 1
-            reverse_aligned_seq1 += seq1[seq1_location]
-            reverse_aligned_seq2 += '-'
-            
-        elif current_move == 3
-            current_move = traceback_matrix[current_row - 1][current_col]
-            seq2_location -= 1
-            reverse_aligned_seq1 += '-'
-            reverse_aligned_seq2 += seq2[seq2_location]
-        
-    aligned_seq1 = reverse_aligned_seq1[::-1]
-    aligned_seq2 = reverse_aligned_seq2[::-1]
-    
-    return aligned_seq1, aligned_seq2
+    return aligned_seq1[::-1], aligned_seq2[::-1]
 ```
 
 ```{python}
 def smith_waterman(seq1, seq2, match=1, mismatch=-1, gap=-1):
-    '''Smith-Waterman algorithm for local alignment
+    column = len(seq1) + 1
+    row = len(seq2) + 1
+    score_matrix = np.zeros((column, row))
+    score_matrix = score_matrix.astype(int)
+    traceback_matrix = np.zeros((column, row))
+    traceback_matrix = traceback_matrix.astype(int)
+    max_score = 0
     
-    Args:
-        seq1 (str): input seq 1
-        seq2 (str): input seq 2
-        match: default = +1
-        mismatch: default = -1
-        gap: default = -1
+    for i in range(1, column):
+        for j in range(1, row):
+            score, direction = cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap)
+            score_matrix[i][j] = score
+            traceback_matrix[i][j] = direction
+            if score >= max_score:
+                max_score = score
+                maximum_position = (i, j)
     
-    Returns:
-        aligned_seq1 (str)
-        aligned_seq2 (str)
-        score_matrix (numpy array): scoring matrix
-    '''
-    column = len(seq2) + 1
-    row = len(seq1) + 1
-    score_matrix = np.zeros(column, row) #need to fill with int zeroes instead of float
-    traceback_matrix = np.zeros(column, row)
+    aligned_seq1, aligned_seq2 = traceback(seq1, seq2, traceback_matrix, maximum_position)
+
     
-    for i in range(1:score_matrix):
-        for j in range(1:score_matrix):
-            score = cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap)[0]
-            direction = cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap)[1]
+    return aligned_seq1, aligned_seq2, score_matrix
 ```
 
 ```{python, eval=FALSE}
 # Example from slides
 seq1 = 'TACTTAG'
 seq2 = 'CACATTAA'
-column = len(seq1) + 1
-row = len(seq2) + 1
-score_matrix = np.zeros((column, row))
-traceback_matrix = np.zeros((column, row))
+#column = len(seq1) + 1
+#row = len(seq2) + 1
+#score_matrix = np.zeros((column, row), dtype=int)
+#traceback_matrix = np.zeros((column, row), dtype=int)
 
-print(cal_score(score_matrix, seq1, seq2, 6, 7, 1, -1, -1)[1])
-#aligned_seq1, aligned_seq2, score_matrix = smith_waterman(seq1,seq2)
+#print(cal_score(score_matrix, seq1, seq2, 6, 7, 1, -1, -1))
 
-#print (aligned_seq1)
-#print (aligned_seq2)
-#print (score_matrix)
+aligned_seq1, aligned_seq2, score_matrix = smith_waterman(seq1,seq2)
+
+print (aligned_seq1)
+print (aligned_seq2)
+print (score_matrix)
+
 ```
 
 Expected output:
