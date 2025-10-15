@@ -1,5 +1,6 @@
 # Introduction
-Description of the project
+
+This project implements the Smith-Waterman algorithm for local sequence alignment. This algorithm finds the most optimal match by building a scoring matrix, and then performing a traceback from the highest scoring node. This gives us the best local alignment between two sequences. 
 
 # Pseudocode
 
@@ -37,17 +38,17 @@ Continue moving until you reach a cell with a score of zero
 ```
 
 # Successes
-Description of the team's learning points
+We got much of the program down during our first meeting by going line by line through the instructions provided and writing a pseodocode that reflected what we would be implementing later. We were able to make time to work on the code as a group, and were effective with our time. We did have to do a bit of outside research on a few things, but overall we are pleased with the outcome of our program. 
 
 # Struggles
-Description of the stumbling blocks the team experienced
+While we were able to get through much of the program with few issues, we did have some original problems determining which sequence represented columns, and which represented rows within the matrix. We also ran into a problem with getting the aligned sequences to return within `traceback_matrix`. Because they were differing lengths, we could get `seq2` to return, but `seq1` would not due to it being shorter. 
 
 # Personal Reflections
-## Group Leader
+## Group Leader - Chris
 Group leader's reflection on the project
 
-## Other member
-Other members' reflections on the project
+## Other member - Abi
+Writing this program went fairly smoothly, with a few hiccups, but Chris and I communicated well in our meetings to ensure we covered all things needed for this assignment. We worked through paired programming, which I think worked well, as we could talk through each line of code as we were working on it, and helped one another understand what was happening within the program. 
 
 # Generative AI Appendix
 As per the syllabus
