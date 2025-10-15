@@ -1,0 +1,140 @@
+---
+title: "Project 04"
+author: "Your Name"
+date: "`r format(Sys.time(), '%Y%m%d')`"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+library('reticulate')
+reticulate::use_condaenv(condaenv = "r-reticulate")
+```
+
+
+```{python}
+from collections import defaultdict
+import random
+
+class DeBruijnGraph():
+    """Main class for De Bruijn graphs
+    
+    Private Attributes:
+        graph (defaultdict of lists): Edges for De Bruijn graph
+        first_node (str): starting position for traversing the graph
+    """
+
+    def __init__(self, input_string, k):
+        self.graph = defaultdict(list)
+        self.first_node = input_string[:k - 1]
+        self.build_debruijn_graph(input_string, k)
+        self.tour = [self.first_node]
+        
+    def add_edge(self, left, right):
+        ''' 
+        This function adds a new edge to the graph
+        
+        Args:
+            left (str): The k-1 mer for the left edge
+            right (str): The k-1 mer for the right edge
+
+        Updates graph attribute to add right to the list named left in defaultdict   
+        '''
+        self.graph[left].append(right)
+        
+    def remove_edge(self, left, right):
+        ''' 
+        This function removes an edge from the graph
+        
+        Args:
+            left (str): The k-1 mer for the left edge
+            right (str): The k-1 mer for the right edge
+
+        Updates graph attribute to remove right from the list named left in defaultdict
+        '''
+        self.graph[left].remove(right)
+
+    def build_debruijn_graph(self, input_string, k):
+        #This function builds a De Buijn graph from a string
+        
+        #input_string = "fool me once shame on shame on you fool me"
+        #k = 6
+        
+        for i in range(0, len(input_string) - (k - 1)):
+            kmer = input_string[i:(i + (k))]
+            k_left = kmer[:k - 1]
+            k_right = kmer[1:]
+            
+            comp_left = k_left[1:]
+            comp_right = k_right[:len(k_right) - 1]
+
+            if comp_left == comp_right:
+                self.add_edge(k_left, k_right)
+
+    def print_eulerian_walk(self, seed=None):
+        ''' This function starts the recursive walk function
+        at the first node in the graph
+        
+        Args: None
+        
+        Returns:
+            tour (list): list of k-1 mers traversed by the algorithm
+        
+        Example:
+        >>> dbg = DeBruijnGraph("this this this is a test", 4)
+        >>> dbg.print_eulerian_walk(seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        ['thi', ...]
+        '''
+        
+        self.eulerian_walk(self.first_node)
+        return self.tour
+        
+        
+    def eulerian_walk(self, node, seed=None):
+        ''' This is a recursive function that follows all edges from a node
+        to traverse the graph
+        
+        Args: 
+            node (str): current node to traverse from
+            seed (int): seed for random selection of edge to follow
+        
+        Returns:
+            tour (list): list of k-1 mers traversed so far by the algorithm
+            Note: this will be reverse order because of recursion
+            
+        Example:
+        >>> dbg = DeBruijnGraph("this this this is a test", 4)
+        >>> dbg.eulerian_walk('thi', seed=1) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        ['est', ...]
+        '''
+        possible_steps = self.graph[node]
+            
+        if possible_steps:
+            next_node = possible_steps[0]
+            self.remove_edge(node, next_node)
+            node = next_node
+            self.tour.append(node)
+            self.eulerian_walk(node)
+            
+        return self.tour
+    
+```
+
+```{python}
+
+graph = DeBruijnGraph("fool me once shame on shame on you fool me", 6)
+print(graph.graph)
+walk = graph.print_eulerian_walk(seed=4)
+walk[0] + "".join(map(lambda x: x[-1], walk[1:]))
+```
+
+Expected output:
+
+``` python-traceback
+defaultdict(<class 'list'>, {'fool ': ['ool m', 'ool m'], 'ool m': ['ol me', 'ol me'], 'ol me': ['l me '], 'l me ': [' me o'], ' me o': ['me on'], 'me on': ['e onc', 'e on ', 'e on '], 'e onc': [' once'], ' once': ['once '], 'once ': ['nce s'], 'nce s': ['ce sh'], 'ce sh': ['e sha'], 'e sha': [' sham'], ' sham': ['shame', 'shame'], 'shame': ['hame ', 'hame '], 'hame ': ['ame o', 'ame o'], 'ame o': ['me on', 'me on'], 'e on ': [' on s', ' on y'], ' on s': ['on sh'], 'on sh': ['n sha'], 'n sha': [' sham'], ' on y': ['on yo'], 'on yo': ['n you'], 'n you': [' you '], ' you ': ['you f'], 'you f': ['ou fo'], 'ou fo': ['u foo'], 'u foo': [' fool'], ' fool': ['fool ']})
+'fool me once shame on shame on you fool me'
+```
