@@ -114,10 +114,10 @@ We admittedly did struggle a decent amount with this program, but ultimately lea
 
 # Personal Reflections
 ## Group Leader - Chris
-Group leader's reflection on the project
+I feel good about the algorithms with these projects. I can wrap my head around the various steps, write out a plan, and be confident with it. Once we actually get into the coding is where I tend to run into issues. In this case, it was trying to learn how numpy works so we could manipulate our matrixes. There was also the idea of using a class/object to hold infomation for us, which I had a vague idea of what it needed to do, but never implimented into our final version. Taking a step back now that the project is done, I can think of a better way of handling our matrix. We had one matrix that we tried to cut, add, and make updates to, and I think it might have been better if we just made a new matrix each time. Identifying when an approach isnt working, and being willing to scrap it and start over is something I should work on. Breaking our neighbor-joining function into smaller functions would have helped too.
 
 ## Other member - Abi
 This project was a good learning experience for me. I still feel as though I am a relatively inexperienced programmer, so I had to do a fair amount of research on various built in Python functions, especially with Numpy, but I certainly learned a lot. Chris and I were able to make time to meet even with my unusual schedule, which I appreciated greatly. I had a lot of trouble understanding the neighbor_joining function, and especially why it was not working, but now I feel like I have a decent grasp on it. 
 
 # Generative AI Appendix
-As per the syllabus
+Didn't use any AI
