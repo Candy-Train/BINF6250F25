@@ -1,6 +1,6 @@
 # BINF6250F25
 # Introduction
-Description of the project
+In this program, we created a Neighbor-joining phylogenetic tree, utilizing the Smith-Waterman algorithm that we created in Project 05. Neighbor-joining phylogenetic trees demonstrate the relationship between neighbors within a distance matrix. 
 
 # Pseudocode
 ```
@@ -107,17 +107,17 @@ Print the resulting Newick tree string.
 Plot the tree.
 ```
 # Successes
-Description of the team's learning points
+We were able to produce a Newick string, as well as a phylogenetic tree, but we are fairly sure that it is not correct. However, given the amount that we were struggling with the program, we are proud that we were able to produce a final product. We were able to write all functions with very little issues, with the exception of the neighbor_joining function. 
 
 # Struggles
-Description of the stumbling blocks the team experienced
+We admittedly did struggle a decent amount with this program, but ultimately learned a lot as well. The majority of our time was spent writing the `neighbor_joining` function, which gave us some significant problems. Our main problems with this function were getting the adjusted matrix to the right size, with the rows that we were removing and adding. It seemed like whatever we did, the matrix was always the wrong size, so we had to play around with the order in which we added and removed rows. We also had a small issue with the distances being negative, which wound up being a fairly easy fix that we overlooked. 
 
 # Personal Reflections
-## Group Leader
+## Group Leader - Chris
 Group leader's reflection on the project
 
-## Other member
-Other members' reflections on the project
+## Other member - Abi
+This project was a good learning experience for me. I still feel as though I am a relatively inexperienced programmer, so I had to do a fair amount of research on various built in Python functions, especially with Numpy, but I certainly learned a lot. Chris and I were able to make time to meet even with my unusual schedule, which I appreciated greatly. I had a lot of trouble understanding the neighbor_joining function, and especially why it was not working, but now I feel like I have a decent grasp on it. 
 
 # Generative AI Appendix
 As per the syllabus
