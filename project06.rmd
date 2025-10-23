@@ -1,0 +1,284 @@
+---
+title: "Project 06: Hierarchical Clustering"
+author: "Your Name"
+date: "`r format(Sys.time(), '%Y%m%d')`"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+library('reticulate')
+```
+
+
+
+```{python}
+from typing import List, Tuple, Dict
+import numpy as np
+#import ete3
+```
+
+
+
+```{python}
+def read_fasta(file_name: str):
+    """
+    Reads sequences from FASTA file.
+
+    Args:
+        filename (str): Path to FASTA file containing HIV RT sequences
+
+    Returns:
+        Dict[str, str]: Dictionary mapping sequence IDs to sequences
+
+    Examples:
+        >>> seqs = read_fasta("lafayette_SARS_RT.fasta")
+        >>> len(seqs) > 0
+        True
+    """
+    with open(file_name, 'r') as fasta_file:
+        sequences = {}
+        current_id = None
+        current_sequence = None
+
+        for line in fasta_file:
+            if line.startswith(">"):
+                if current_id:
+                    sequences[current_id] = current_sequence
+                line = line.split()
+                current_id = line[-1]
+                current_sequence = ''
+            else:
+                line = line.strip()
+                current_sequence += line
+        if current_id: #fills in the final entry
+            line = line.strip()
+            current_sequence += line
+            sequences[current_id] = current_sequence
+
+    return sequences
+```
+
+
+
+```{python}
+def cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap):
+    """
+    Calculates score for position (i,j) in scoring matrix, also records move to traceback
+    Args:
+        matrix (numpy array): scoring matrix
+        seq1 (str): sequence 1
+        seq2 (str): sequence 2
+        i (int): current row number
+        j (int): current column number
+        
+    Returns:
+        score in position (i,j)    
+        move to trace back: 0-END, 1-DIAG, 2-UP, 3-LEFT
+    """
+    if seq1[i - 1] == seq2[j - 1]:
+        diag_score = score_matrix[i - 1, j - 1] + match
+    else:
+        diag_score = score_matrix[i - 1, j - 1] + mismatch
+    up_score = score_matrix[i - 1, j] + gap
+    left_score = score_matrix[i, j - 1] + gap
+    
+    score = max(0, diag_score, up_score, left_score) #Finds the max score, defaults to 0 if scores are negative
+    
+    return score
+```
+
+```{python}
+def smith_waterman(
+    seq1,
+    seq2,
+    match = 2.0,
+    mismatch = -1.0,
+    gap = -1.0
+    ):
+    """
+    Implements Smith-Waterman local alignment algorithm.
+
+    Args:
+        sequence1 (str): First HIV RT sequence
+        sequence2 (str): Second HIV RT sequence
+        match_score (float): Score for matching characters
+        mismatch_penalty (float): Penalty for mismatched characters
+        gap_penalty (float): Penalty for gaps
+
+    Returns:
+        float: Normalized similarity score between sequences
+
+    Examples:
+        >>> seq1 = "ACGT"
+        >>> seq2 = "ACGT"
+        >>> smith_waterman(seq1, seq2)
+        1.0
+    """
+    column = len(seq1) + 1
+    row = len(seq2) + 1
+    
+    #Initialize the matrix
+    score_matrix = np.zeros((column, row))
+    max_score = 0
+    
+    for i in range(1, column):
+        for j in range(1, row):
+            score = cal_score(score_matrix, seq1, seq2, i, j, match, mismatch, gap)
+            score_matrix[i][j] = score
+            if score >= max_score:
+                max_score = score
+    normal_score = max_score/(match*((len(seq1) + len(seq2)) / 2))
+    return normal_score
+```
+
+```{python}
+def build_distance_matrix(sequences):
+    """Builds distance matrix using Smith-Waterman scores.
+
+    Args:
+        sequences (Dict[str, str]): Dictionary of HIV RT sequences
+
+    Returns:
+        Tuple[np.ndarray, List[str]]: Distance matrix and list of sequence IDs
+
+    Examples:
+        >>> seqs = read_fasta("lafayette_SARS_RT.fasta")
+        >>> matrix, ids = build_distance_matrix(seqs)
+        >>> matrix[0:3, 0:3]  # Show 3x3 slice of distance matrix
+        array([[0.000, 0.004, 0.012],
+              [0.004, 0.000, 0.012],
+              [0.012, 0.012, 0.000]])
+        >>> len(ids)  # Number of sequences
+        19
+    """
+    ids = []
+    for key in sequences.keys():
+        ids.append(key)
+    size = len(ids)
+    matrix = np.zeros((size, size))
+    for i in range(size):
+        for j in range(size):
+            ids_i = ids[i]
+            ids_j = ids[j]
+            score = smith_waterman(sequences[ids_i], sequences[ids_j])
+            distance = abs(1 - score)
+            matrix[i][j] = distance
+            
+    return matrix, ids
+```
+
+```{python}
+def get_min_distance(matrix):
+
+    min_value = 0
+    min_position = ()
+
+    for position, value in np.ndenumerate(matrix):
+        if position[0] == position[1]:
+            continue
+        if value < min_value:
+            min_value = value
+            min_position = position
+            
+    return min_position, min_value
+```
+
+```{python}
+class Node:    
+	def __init__(self, name, branch_length=None):        
+		self.name = name        
+		self.children = []        
+		self.parent = None        
+		self.branch_length = branch_length    
+	
+	def add_child(self, child, branch_length=None):        
+		self.children.append(child)       
+		child.parent = self
+		child.branch_length = branch_length
+```
+
+
+
+```{python}
+def neighbor_joining(distance_matrix, labels):
+    """
+    Implements Neighbor-Joining algorithm for phylogenetic tree construction.
+    (Minimal functional fix version)
+    """
+    n = len(labels)
+
+    while n > 2:
+        divergence = np.sum(distance_matrix, axis=0)
+        adjusted_matrix = distance_matrix * (n - 2)
+        
+        for row in range(n):
+            adjusted_matrix[row, :] = adjusted_matrix[row, :] - divergence[row]
+            
+        for column in range(n):
+            adjusted_matrix[:, column] = adjusted_matrix[:, column] - divergence[column]
+        
+        min_position, min_value = get_min_distance(adjusted_matrix)
+        i, j = min_position
+
+        # branch length calculation
+        i_branch_length = (distance_matrix[i, j] + (((divergence[i]) - (divergence[j])) / (n - 2))) / 2
+        j_branch_length = distance_matrix[i, j] - i_branch_length
+        
+        # Clamp negatives (rounding or numeric error)
+        i_branch_length = max(i_branch_length, 0)
+        j_branch_length = max(j_branch_length, 0)
+
+        node_i = labels[i]
+        node_j = labels[j]
+
+
+        ids_to_remove = [node_i, node_j]
+        new_labels = [lbl for lbl in labels if lbl not in ids_to_remove]
+        new_label = f"({node_i}:{i_branch_length:.4f},{node_j}:{j_branch_length:.4f})"
+        new_labels.append(new_label)
+
+
+        # compute distances for new
+        new_row = []
+        for k in range(len(new_labels)):
+            new_row.append((distance_matrix[i, k] + distance_matrix[j, k] - distance_matrix[i, j]) / 2)
+        # add new row and column
+        # remove i, j from distance_matrix
+        new_matrix = np.delete(distance_matrix, j, axis=1)#cut column
+        new_matrix = np.delete(new_matrix, j, axis=0)#cut row
+        
+
+        new_matrix[i] = new_row
+        new_matrix[:, i] = new_row
+        
+        distance_matrix = new_matrix
+        labels = new_labels
+        n = len(labels)
+    if n == 2:
+        node_i = labels[0]
+        node_j = labels[1]
+        i_branch_length = max(distance_matrix[0, 1]/2, 0)
+        j_branch_length = max(distance_matrix[1, 0]/2, 0)
+        newick_string = f"({node_i}:{i_branch_length:.4f},{node_j}:{j_branch_length:.4f})"
+        
+        return newick_string
+
+```
+
+```{python}
+if __name__ == "__main__":
+
+	file_name = "lafayette_SARS_RT.fasta"
+	sequences = read_fasta(file_name)
+
+	matrix, ids = build_distance_matrix(sequences)
+
+	newick_string = neighbor_joining(matrix, ids)
+	print(newick_string)
+
+```
