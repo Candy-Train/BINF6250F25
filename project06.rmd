@@ -271,41 +271,14 @@ def neighbor_joining(distance_matrix, labels):
 ```
 
 ```{python}
-def plot_tree(newick_tree: str) -> None:
-    """Plots phylogenetic tree using ete3.
-
-    Args:
-        newick_tree (str): Tree in Newick format
-    """
-    tree = ete3.Tree(newick_tree)
-    ts = ete3.TreeStyle()
-    ts.show_leaf_name = True
-    ts.mode = "c"  # circular style
-    return tree.render("%%inline", tree_style=ts)
-```
-
-```{python}
 if __name__ == "__main__":
-    # Read HIV RT sequences
-    sequences = read_fasta("lafayette_SARS_RT.fasta")
-    
-    # Build distance matrix using Smith-Waterman
-    dist_matrix, seq_ids = build_distance_matrix(sequences)
-    
-    # Generate unrooted tree using Neighbor-Joining
-    tree = neighbor_joining(dist_matrix, seq_ids)
-    
-    # Plot tree
-    plot_tree(tree)
-```
 
-```{python}
-file_name = "lafayette_SARS_RT.fasta"
-sequences = read_fasta(file_name)
+	file_name = "lafayette_SARS_RT.fasta"
+	sequences = read_fasta(file_name)
 
-matrix, ids = build_distance_matrix(sequences)
+	matrix, ids = build_distance_matrix(sequences)
 
-newick_string = neighbor_joining(matrix, ids)
-print(newick_string)
+	newick_string = neighbor_joining(matrix, ids)
+	print(newick_string)
 
 ```
