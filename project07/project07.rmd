@@ -122,7 +122,20 @@ def cal_count(string: str) -> dict[str, int]:
         >>> cal_count('banana')
         {'a': 0, 'b': 3, 'n': 4}
     """
-    pass
+
+    dict_track = {}
+    dict_result = {}
+    count_so_far = 0
+    
+    dict_track = Counter(string)
+    
+    sorted_keys = sorted(dict_track.keys())
+    
+    for char in sorted_keys:
+      dict_result[char] = count_so_far
+      count_so_far += dict_track[char]
+    
+    return dict_result
 ```
 
 
@@ -149,7 +162,22 @@ def cal_occur(bwt_string: str) -> dict[str, list[int]]:
         >>> cal_occur('annb$aa')
         {'$': [0, 0, 0, 0, 1, 1, 1], 'a': [0, 1, 1, 1, 1, 2, 3], 'b': [0, 0, 0, 1, 1, 1, 1], 'n': [0, 0, 2, 2, 2, 2, 2]}
     """
-    pass
+
+    dict_occur = {}
+    sorted_keys = sorted(Counter(bwt_string))
+    len_string = len(bwt_string)
+    
+    for char in sorted_keys:
+      count_list = [0] * len_string
+      dict_occur[char] = count_list
+      
+      for i in range(len_string):
+        if i != 0:
+          dict_occur[char][i] = dict_occur[char][i-1]
+        if bwt_string[i] == char:
+          dict_occur[char][i] += 1
+    
+    return dict_occur
 ```
 
 
@@ -209,5 +237,47 @@ def find_match(query: str, reference: str) -> list[int]:
         >>> find_match('xyz', 'banana')
         []
     """
-    pass
+
+    # 0. Add the sentinel character. 
+    text = reference + "$"
+    
+    # --- Preprocessing ---
+    # 1. Build Suffix Array (Suffix Positions)
+    suffix_positions = suffix_array(text)
+    
+    # 2. Build BWT string (Transformed)
+    transformed = BWT_from_suffix_array(text, suffix_positions)
+    
+    # 3. Build Count Table (C-Table)
+    counts = cal_count(transformed)
+    
+    # 4. Build Occurrence Table (Occ-Table)
+    occurrences = cal_occur(transformed)
+    
+    
+    # --- Backward Search ---
+    
+    # Initialize search range to cover the entire transformed text
+    lower = 0
+    upper = len(text) - 1
+    
+    # for each character in the pattern, processing from right to left do
+    for char in reversed(query):
+        
+        if char not in counts:
+            return []
+            
+        lower, upper = update_range(lower, upper, counts, occurrences, char)
+        
+        # if the range becomes empty then
+        if lower > upper:
+            return []
+            
+    # --- Collect Results ---
+    matches = []
+    for i in range(lower, upper + 1):
+        matches.append(suffix_positions[i])        
+
+    return sorted(matches)
 ```
+
