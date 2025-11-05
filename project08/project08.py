@@ -9,7 +9,17 @@ class State:
         self.name = name
 
 def calc_max(states, max_previous, current, observations):
+    '''
+    Purpose - Calculates the probability of the current observation in a given state, given each possible previous state.
 
+    Inputs - 
+        States (list of objects)
+        Probabilities of previous observation in each state (list of float)
+            This can be a list of floats pulled from the previous column of our probability matrix
+    Output -
+        The max probabilities for the observation in a state (float)
+        The row of previous state that this max came from, to give to the traceback matrix (int)
+    '''
     #Recursion equation (i=1...L): vl(i) = el(xi) * maxk(vk(i–1)akl)
 
     maximum = []
@@ -24,7 +34,13 @@ def calc_max(states, max_previous, current, observations):
 
 
 def build_probability_matrix(states, observations):
+    '''
+    Purpose - Constructs a probability matrix from a list of states and and observations. Fills in the traceback matrix with the most probable previous state.
 
+    Inputs - States (list of objects), Observations (string)
+
+    Output - a probability matrix (array), traceback matrix (array)
+    '''
     probability_matrix = np.zeros((len(states), len(observations)))
     traceback_matrix = np.zeros((len(states), len(observations)), dtype=int)
 
@@ -79,7 +95,7 @@ def traceback(traceback_matrix, observations, final_state_index, state_names):
     # returns full list of state names
 
 
-def create_states(initial_probs: dict, emission_probs, trans_probs):
+def create_states(initial_probs, emission_probs, trans_probs):
     '''
     Purpose - Create all State objects
 
@@ -88,7 +104,7 @@ def create_states(initial_probs: dict, emission_probs, trans_probs):
         emission probabilities (dict of floats)
         transition probabilities (dict of floats)
     Output -
-        a State (object)
+        a list of States (list of object)
     '''
     states = []
 
@@ -102,8 +118,9 @@ def main():
     initial_probs = {"I": 0.1, "G": 0.9}
     emission_probs = {"I": {"A": 0.1, "C": 0.4, "G": 0.4, "T": 0.1}, "G": {"A": 0.4, "C": 0.1, "G": 0.1, "T": 0.4}}
     trans_probs = {"I": {"I": 0.6, "G": 0.4}, "G": {"I": 0.1, "G": 0.9}}
-    states = create_states(initial_probs, emission_probs, trans_probs)
     observations = "ACGCGATC"
+
+    states = create_states(initial_probs, emission_probs, trans_probs)
 
     state_names = []
     for state in states:
@@ -111,7 +128,9 @@ def main():
 
     probability_matrix, traceback_matrix  = build_probability_matrix(states, observations)
 
-    trace = traceback(traceback_matrix, observations, 1, state_names)
+    final_state = traceback_matrix[-1, -1]
+
+    trace = traceback(traceback_matrix, observations, final_state, state_names)
     print(probability_matrix)
     print(traceback_matrix)
     print(trace)
