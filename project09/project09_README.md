@@ -63,7 +63,6 @@ Purpose:
 Calculate the probability of the observations given the HMM
 
 Inputs:
-hmm_matrix: initialized HMM matrix (NumPy array)
 states: list of State objects
 observations: string of observations
 
@@ -83,7 +82,6 @@ Purpose:
 Calculate the probability of the sequence of observations given the HMM, moving backwards
 
 Inputs:
-hmm_matrix: initialized HMM matrix (NumPy array)
 states: list of State objects
 observations: string of observations
 
@@ -110,6 +108,9 @@ state: The name of the state of interest
 observations: The entire sequence of observations
 states_list: The list of all State objects
 
+Outputs:
+the probability that the observation at the position of interest is in the state of interest (float)
+
 Process:
 Run the forward algorithm to get the forward probability matrix and total sequence probability
 Run the backward algorithm to get the backward probability matrix and total sequence probability
@@ -133,7 +134,7 @@ calculating the posterior probability, but are sticking with what the lecture no
 
 # Personal Reflections
 ## Group Leader - Chris
-Group leader's reflection on the project
+Overall, this went smoothly. We had a solid understanding of what we needed to do, and how to achieve it, right up until the forward-backward algorithm. We found that if we used the total probability from the foward algorithm in the denominator, that the results were more accurate for observations earlier in the sequence. But if we used the backward algorithm probability, later observations were more accurate. 
 
 ## Other member - Abi
 I think that this was a fairly simple program to write. We were able to use bits and pieces from Porject 08, but did wind up changing
@@ -141,4 +142,4 @@ some things. I got a bit mixed up with the backward algorithm, which was why we 
 quick fix.
 
 # Generative AI Appendix
-As per the syllabus
+No AI was used.
