@@ -118,6 +118,19 @@ def backward_algorithm(states, observations):
 
 
 def forward_backward_algorithm(position, state, observations, states_list):
+    '''
+    Purpose:
+    Calculate the posterior probability that the model was in a specific state at a specific position in the observation sequence
+    
+    Inputs -
+    position: Index of the observation of interest
+    state: The name of the state of interest
+    observations: The entire sequence of observations
+    states_list: The list of all State objects
+    
+    Outputs -
+    the probability that the observation at the position of interest is in the state of interest (float)
+    '''
 
     forward_matrix, forward_prob = forward_algorithm(states_list, observations)
     backward_matrix, backward_prob = backward_algorithm(states_list, observations)
