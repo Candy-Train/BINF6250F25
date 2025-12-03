@@ -109,7 +109,7 @@ def backward_algorithm(states, observations):
             backward_probs[j, i] = calc_sum(states, current_state, observations[i+1], backward_probs[:, i+1])
 
     # Sequence probability
-    seq_prob = 0.0 #but why?
+    seq_prob = 0.0
     first_obs = observations[0]
     for i, state in enumerate(states):
         seq_prob += state.initial_probs * state.emission_probs[first_obs] * backward_probs[i, 0]
@@ -119,6 +119,14 @@ def backward_algorithm(states, observations):
 
 
 def forward_backward_algorithm(states, observations):
+    '''
+    Purpose - Calculate the probability matrix of an observations in a specific state, given the HMM.
+
+    Input -
+        states: list of State objects
+        observations: string of observations
+    Output - Posterior probability matrix, foward and backward matrix, foward and backward probabilies
+    '''
 
     forward_matrix, forward_prob = forward_algorithm(states, observations)
     backward_matrix, backward_prob = backward_algorithm(states, observations)
@@ -134,80 +142,84 @@ def forward_backward_algorithm(states, observations):
 
 
 def baum_welch(states, observations):
+    '''
+    Purpose - uses the Baum-Welch Expectation-Maximization approach to improve HMM parameter estimations
+    
+    Inputs -
+        states: list of State objects
+        sequences: list of strings of Observations
+
+    Output -
+        list of State objects with updated initial, emission, and transition probabilities
+        convergence: returns True if the newly calculted probabilites are not significantly different from the previous one
+    '''
     convergence = True #allows us to track if values stop changing
 
-    #creates a dictionary of symbols from the observation sequence and their location within the sequence
-    symbols_dict = defaultdict(list)
-    for index, symbol in enumerate(observations):
-        symbols_dict[symbol].append(index)
-
-    #useful values and matrices to have
+    #initializes arrays to hold the calculated averages when using multiple sequences build the model
     num_states = len(states)
-    obs = len(observations)
-    posterior_prob_matrix, forward_matrix, backward_matrix, forward_prob, backward_prob = forward_backward_algorithm(states, observations)
+    posterior_sums = np.zeros(num_states)
+    xi_sums = np.zeros((num_states, num_states))
+    emission_sums = {state.name: defaultdict(float) for state in states}
+    initial_sums = np.zeros(num_states)
 
+    for observations in sequences:
+        #dictionary to hold the index locations of each symbol that appears in the obervation
+        symbols_dict = defaultdict(list)
+        for index, symbol in enumerate(observations):
+            symbols_dict[symbol].append(index)
 
+        #all the matrix and probabilites we need later
+        posterior_prob_matrix, forward_matrix, backward_matrix, forward_prob, backward_prob = forward_backward_algorithm(states, observations)
 
-    # 3D matrix: from state i to state j position change
-    xi = np.zeros((num_states, num_states, obs - 1))
+        #builds the xi matrix we need for probability calculations
+        xi = np.zeros((num_states, num_states, len(observations) - 1))
+        denominator = (forward_prob + backward_prob) / 2.0
 
-    # denominator = (Pf + Pb) / 2
-    denominator = (forward_prob + backward_prob) / 2.0
+        for position in range(len(observations) - 1):
+            next_obs = observations[position + 1]
+            for i, state_i in enumerate(states):
+                for j, state_j in enumerate(states):
+                    numerator = forward_matrix[i, position] * state_i.trans_probs[state_j.name] * state_j.emission_probs[next_obs] * backward_matrix[j, position + 1]
+                    xi[i, j, position] = numerator / denominator
 
-    # For every position
-    for position in range(obs - 1):
-        next_obs = observations[position + 1]
+        initial_sums += posterior_prob_matrix[:, 0]
+        posterior_sums += np.sum(posterior_prob_matrix, axis=1)
+        for i, state in enumerate(states):
+            for symbol in symbols_dict:
+                emission_sums[state.name][symbol] += np.sum(posterior_prob_matrix[i, symbols_dict[symbol]])
+            xi_sums[i] += np.sum(xi[i], axis=1)
 
-        # For every possible state i to state j transition
-        for i, state_i in enumerate(states):
-            for j, state_j in enumerate(states):
-
-                forward = forward_matrix[i, position] # forward_prob(i, position)
-                trans = state_i.trans_probs[state_j.name] # transition_prob(i to j)
-                emit = state_j.emission_probs[next_obs] # emission_prob(next_obs given j)
-                backward = backward_matrix[j, position + 1] # backward_prob(j, position+1)
-
-                numerator = forward * trans * emit * backward
-
-                xi[i, j, position] = numerator / denominator
-
-    #updates initial probs
+    #updates intitial probabilities 
     for i, state in enumerate(states):
-        new_initial_prob = posterior_prob_matrix[i, 0]
+        new_initial_prob = initial_sums[i] / len(sequences)
         if abs(new_initial_prob - state.initial_probs) > 0.001:
             convergence = False
         state.initial_probs = new_initial_prob
 
-    #updates emission probs
-    row_sums = np.sum(posterior_prob_matrix, axis=1)
-
-    for i, state in enumerate(states):
-        for symbol in symbols_dict:
-            current_state_posterior = np.array(posterior_prob_matrix[i])
-            symbol_prob = np.sum(current_state_posterior[symbols_dict[symbol]])
-            new_emission_prob = symbol_prob / row_sums[i]
+        #updates emission probabilities
+        for symbol in emission_sums[state.name]:
+            new_emission_prob = emission_sums[state.name][symbol] / posterior_sums[i]
             if abs(new_emission_prob - state.emission_probs[symbol]) > 0.001:
                 convergence = False
             state.emission_probs[symbol] = new_emission_prob
-    
-    #updates the transition probs
-    for i, first_state in enumerate(states):
-        for j, second_state in enumerate(states):
-            sliced_matrix = xi[i, j, :]
-            new_trans_prob = np.sum(sliced_matrix) / (row_sums[i] - posterior_prob_matrix[i, -1])
-            if abs(new_trans_prob - first_state.trans_probs[second_state.name]) > 0.001:
+
+        #updates transition probabilities
+        for j, state_j in enumerate(states):
+            new_trans_prob = xi_sums[i, j] / (posterior_sums[i] - initial_sums[i])
+            if abs(new_trans_prob - state.trans_probs[state_j.name]) > 0.001:
                 convergence = False
-            first_state.trans_probs[second_state.name] = new_trans_prob
+            state.trans_probs[state_j.name] = new_trans_prob
 
     return states, convergence
 
 def main():
+    #testing values
     initial_probs = {"I": 0.1, "G": 0.9}
     emission_probs = {"I": {"A": 0.1, "C": 0.4, "G": 0.4, "T": 0.1}, "G": {"A": 0.4, "C": 0.1, "G": 0.1, "T": 0.4}}
     trans_probs = {"I": {"I": 0.6, "G": 0.4}, "G": {"I": 0.1, "G": 0.9}}
-    observations = "ACGCGATC"
+    sequences = ["ACGCGATC", "GCGTAC", "ATCG"] 
 
-    states = create_states(initial_probs, emission_probs, trans_probs)
+    states = create_states(initial_probs, emission_probs, trans_probs) #gives us our list of State objects. 
 
     
     counter = 0
@@ -217,9 +229,10 @@ def main():
         states, convergence = baum_welch(states, observations)
         counter += 1
         print(counter)
-        if counter >= 100:
+        if counter >= 100: #currently crashes at 14 because our probabilites get too small and we aren't in log space
             convergence = True
 
 
 if __name__ == "__main__":
+
    main()
