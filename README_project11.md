@@ -69,8 +69,6 @@ For each state in `hiddenstates`
 Parameter estimation
 
 #### Transition probabilities
-example `observed_trans` -> M0[M1: '', I0: '', D1: '']
-
 For each outer key in `trans_probs`
 	get a list of the inner keys (observed transitions)
 	search the `labeled residue array` to collect a count of each observed transition and store them as a dict (`observed_trans`) where the key is the observed transition state and the value is the count
@@ -106,15 +104,20 @@ Note: We found an outside resource that was very helpful in our understanding if
 https://www.cs.cmu.edu/~durand/03-711/2010/Lectures/hmm10-5.pdf
 
 # Struggles
-We had a bit of trouble starting out, just getting our wits about us to understand fully what we were supposed to be doing. It was a little overwhelming having as much 
+Abi - We had a bit of trouble starting out, just getting our wits about us to understand fully what we were supposed to be doing. It was a little overwhelming having as much 
 information as we did, and also trying to learn the code provided to us. We did have a bit of trouble with the transition probabilities not pulling the correct counts, 
 which was easy enough to fix, we just had to do it in a less elegant way. We also ran into some serious issues integrating our code with Marcus's program, though we tailored 
 everything to be easy to integrate. We were not able to complete doing the forward probabilities and Viterbi path due to these integration problems. We also ran into some problems
 with understanding how to handle the emmission probabilities of states that don't emit (start, deletion and end).
 
+Chris - We spent a majority of our time writing the functions for our pHMM, and didn't have enough time to fully troubleshoot our integration with Marcus' code. Example of issues we had include:
+
+- Our list of hidden states is converted to a str by one of the setters in the baseHMM class. This means that what started as a length of 12 becomes a length of 24, which is now no longer the same length as our trans_probs dictionary. This causes the baseHMM class to give us an error staying that our trans_probs is not the same length as our hidden states.
+- Our emission_prob dict is not the correct size because we don't include "silent states" such as the M0 or Deletion states that don't have emissions.
+  
 # Personal Reflections
 ## Group Leader - Chris
-Group leader's reflection on the project
+We did not have enough time to complete this. It seemed like there was conflicting information on how our data was supposed to be formatted, like askig for the hidden states to be a list, but then the baseHMM converting it to a str. It was definitely a hit to our morale to spend most of the week getting our pHMM functions in order, only to run into a number of issues trying to integrate it with the other program. At that point, it was kind of too late to ask for outside help.
 
 ## Other member - Abi
 This project was a tough one to end on. I figured it would be tricky, especially with trying to tailor our functions to integrate with the code given to us, but it was a bit more
